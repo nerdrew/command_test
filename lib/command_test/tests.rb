@@ -1,16 +1,22 @@
 module CommandTest
   module Tests
     class RunsCommand
-      def initialize(expected, &proc)
-        @expected = expected
-        @proc = proc
+      def initialize(expected, continue = true, &block)
+        @expected = Array === expected.first ? expected : [expected]
+        @success = []
+        @expected.each do |exp|
+          @success << (Proc === exp.last ? exp.pop : Proc.new{})
+        end
+        @continue = continue
+        @block = block
       end
 
       def matches?
-        @actual = CommandTest.record(&@proc)
-        @actual.any? do |actual|
-          CommandTest.match?(@expected, actual)
+        @actual = CommandTest.record(@continue, @expected.dup, @success.dup, &@block)
+        @expected.zip(@actual).each do |(expected, actual)|
+          return false if !CommandTest.match?(expected, actual || [])
         end
+        return true
       end
 
       def positive_failure_message

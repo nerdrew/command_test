@@ -12,9 +12,9 @@ module CommandTest
     #
     # Each command is an Array of "words" (command and arguments).
     #
-    def record
+    def record(continue = true, expected = [], success = [])
       commands = []
-      recorders << lambda{|c| commands << c}
+      recorders << lambda{|c| commands << c; [continue, expected, success]}
       begin
         yield
       ensure
@@ -40,19 +40,24 @@ module CommandTest
     #    +actual+.
     #
     def match?(expected, actual)
+      return if expected.nil?
       matcher.match?(expected, actual)
     end
 
     def record_command(command, *args) # :nodoc:
       words = Shellwords.shellwords(command).concat(args)
-      recorders.each{|r| r.call(words)}
+      continue, expected, success = recorders.collect{|r| r.call(words)}.last
+      [continue, match?((expected || []).pop, words), (success || []).pop]
+      #recorders.each{|r| r.call(words)}
     end
 
     def record_interpreted_command(command) # :nodoc:
       words = parser.parse(command)
-      recorders.each{|r| r.call(words)}
+      continue, expected, success = recorders.collect{|r| r.call(words)}.last
+      [continue, match?((expected || []).pop, words), (success || []).pop]
+      #recorders.each{|r| r.call(words)}
     end
-
+    
     private
 
     def recorders

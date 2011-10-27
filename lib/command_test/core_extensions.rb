@@ -29,48 +29,68 @@ module CommandTest
 
     module Kernel
       def system_with_command_test(*args, &block)
-        CommandTest.record_command(*args)
-        system_without_command_test(*args, &block)
+        continue, match, success = CommandTest.record_command(*args)
+        if continue
+          success.call if match
+          system_without_command_test(*args, &block)
+        else
+          system_without_command_test('true', &block)
+        end
       end
 
       def backtick_with_command_test(*args, &block)
-        (command = args.first) and
-          CommandTest.record_interpreted_command(command)
-        backtick_without_command_test(*args, &block)
+        if command = args.first
+          continue, match, success = CommandTest.record_interpreted_command(command)
+        end
+        if continue
+          success.call if match
+          backtick_without_command_test(*args, &block)
+        else
+          backtick_without_command_test('true', &block)
+        end
       end
 
       def open_with_command_test(*args, &block)
-        (command = args.first) && command =~ /\A\|/ and
-          CommandTest.record_interpreted_command($')
+        if (command = args.first) && command =~ /\A\|/
+          continue, match, success = CommandTest.record_interpreted_command($')
+          if !continue
+            success.call if match
+            return open_without_command_test('|true', &block)
+          end
+        end
         open_without_command_test(*args, &block)
+      end
+
+      def spawn_with_command_test(*args, &block)
+        continue, match, success = CommandTest.record_command(*args)
+        if continue
+          spawn_without_command_test(*args, &block)
+        else
+          success.call if match
+          spawn_without_command_test('true', &block)
+        end
       end
     end
 
-    define_included_hook(Kernel, :system, :open, :'`' => :backtick)
+    define_included_hook(Kernel, :system, :open, :spawn, :'`' => :backtick)
     ::Kernel.send :include, Kernel
     ::Kernel.send :extend, Kernel
 
     module IO
       def popen_with_command_test(*args, &block)
-        command = args.first and
-          CommandTest.record_interpreted_command(command)
-        popen_without_command_test(*args, &block)
+        if command = args.first
+          continue, match, success = CommandTest.record_interpreted_command(command)
+        end
+        if continue
+          popen_without_command_test(*args, &block)
+        else
+          success.call if match
+          popen_without_command_test('true', &block)
+        end
       end
     end
 
     define_included_hook(IO, :popen)
     ::IO.send :extend, IO
-
-    module Open3
-      def popen3_with_command_test(*args, &block)
-        command = args.first and
-          CommandTest.record_command(*args)
-        popen3_without_command_test(*args, &block)
-      end
-    end
-
-    define_included_hook(Open3, :popen3)
-    ::Open3.send :include, Open3
-    ::Open3.send :extend, Open3
   end
 end

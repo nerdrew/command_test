@@ -18,8 +18,10 @@ module CommandTest
         when Range, :*, :+
           case specifier
           when :*
+            return true if e == expected.length - 1
             specifier = 0...(actual.length - a)
           when :+
+            return a < (actual.length) if e == expected.length - 1
             specifier = 1...(actual.length - a)
           end
           specifier.end >= specifier.begin or

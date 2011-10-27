@@ -13,6 +13,10 @@ module CommandTest
       def run_command(*command)
         RunCommand.new(command)
       end
+
+      def catch_command(*command)
+        CatchCommand.new(command)
+      end
     end
 
     class RunCommand
@@ -21,7 +25,7 @@ module CommandTest
       end
 
       def matches?(proc)
-        @test = Tests::RunsCommand.new(@expected, &proc)
+        @test = Tests::RunsCommand.new(@expected, true, &proc)
         @test.matches?
       end
 
@@ -31,6 +35,13 @@ module CommandTest
 
       def failure_message_for_should_not
         @test.negative_failure_message
+      end
+    end
+
+    class CatchCommand < RunCommand
+      def matches?(proc)
+        @test = Tests::RunsCommand.new(@expected, false, &proc)
+        @test.matches?
       end
     end
 

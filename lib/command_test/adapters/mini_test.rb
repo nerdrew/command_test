@@ -1,6 +1,6 @@
 module CommandTest
   module Adapters
-    module TestUnit
+    module MiniTest
       module Assertions
         #
         # Passes if the block runs the given command.
@@ -12,11 +12,9 @@ module CommandTest
         # Commands are matched according to CommandTest.match? .
         #
         def assert_runs_command(*expected, &block)
-          result = Tests::RunsCommand.new(expected, &block)
+          result = Tests::RunsCommand.new(expected, true, &block)
           matches = result.matches?
-          assert_block(matches ? nil : result.positive_failure_message) do
-            matches
-          end
+          assert matches, result.positive_failure_message
         end
 
         def assert_catches_command(*expected, &block)
@@ -43,7 +41,7 @@ module CommandTest
         end
       end
 
-      ::Test::Unit::TestCase.send :include, Assertions
+      ::MiniTest::Unit::TestCase.send :include, Assertions
     end
   end
 end
