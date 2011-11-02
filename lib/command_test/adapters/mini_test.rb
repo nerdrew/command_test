@@ -12,13 +12,13 @@ module CommandTest
         # Commands are matched according to CommandTest.match? .
         #
         def assert_runs_command(*expected, &block)
-          result = Tests::RunsCommand.new(expected, true, &block)
+          result = Tests::RunsCommand.new(expected, &block)
           matches = result.matches?
           assert matches, result.positive_failure_message
         end
 
         def assert_catches_command(*expected, &block)
-          result = Tests::RunsCommand.new(expected, false, &block)
+          result = Tests::RunsCommand.new(expected, true, &block)
           matches = result.matches?
           assert matches, result.positive_failure_message
         end

@@ -1,18 +1,18 @@
 module CommandTest
   module Tests
     class RunsCommand
-      def initialize(expected, continue = true, &block)
+      def initialize(expected, halt = nil, &block)
         @expected = Array === expected.first ? expected : [expected]
         @success = []
         @expected.each do |exp|
           @success << (Proc === exp.last ? exp.pop : Proc.new{})
         end
-        @continue = continue
+        @halt = halt
         @block = block
       end
 
       def matches?
-        @actual = CommandTest.record(@continue, @expected.dup, @success.dup, &@block)
+        @actual = CommandTest.record(@halt, @expected.dup, @success.dup, &@block)
         @expected.zip(@actual).each do |(expected, actual)|
           return false if !CommandTest.match?(expected, actual || [])
         end

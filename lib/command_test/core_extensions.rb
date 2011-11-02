@@ -29,45 +29,36 @@ module CommandTest
 
     module Kernel
       def system_with_command_test(*args, &block)
-        continue, match, success = CommandTest.record_command(*args)
-        if continue
-          success.call if match
-          system_without_command_test(*args, &block)
-        else
+        if CommandTest.record_command(*args)
           system_without_command_test('true', &block)
+        else
+          system_without_command_test(*args, &block)
         end
       end
 
       def backtick_with_command_test(*args, &block)
-        if command = args.first
-          continue, match, success = CommandTest.record_interpreted_command(command)
-        end
-        if continue
-          success.call if match
-          backtick_without_command_test(*args, &block)
-        else
+        if command = args.first and
+          CommandTest.record_interpreted_command(command)
           backtick_without_command_test('true', &block)
+        else
+          backtick_without_command_test(*args, &block)
         end
       end
 
       def open_with_command_test(*args, &block)
-        if (command = args.first) && command =~ /\A\|/
-          continue, match, success = CommandTest.record_interpreted_command($')
-          if !continue
-            success.call if match
-            return open_without_command_test('|true', &block)
-          end
+        if (command = args.first) && command =~ /\A\|/ and
+          CommandTest.record_interpreted_command($')
+          open_without_command_test('|true', &block)
+        else
+          open_without_command_test(*args, &block)
         end
-        open_without_command_test(*args, &block)
       end
 
       def spawn_with_command_test(*args, &block)
-        continue, match, success = CommandTest.record_command(*args)
-        if continue
-          spawn_without_command_test(*args, &block)
-        else
-          success.call if match
+        if CommandTest.record_command(*args)
           spawn_without_command_test('true', &block)
+        else
+          spawn_without_command_test(*args, &block)
         end
       end
     end
@@ -78,14 +69,11 @@ module CommandTest
 
     module IO
       def popen_with_command_test(*args, &block)
-        if command = args.first
-          continue, match, success = CommandTest.record_interpreted_command(command)
-        end
-        if continue
-          popen_without_command_test(*args, &block)
-        else
-          success.call if match
+        if command = args.first and
+          CommandTest.record_interpreted_command(command)
           popen_without_command_test('true', &block)
+        else
+          popen_without_command_test(*args, &block)
         end
       end
     end

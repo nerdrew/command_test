@@ -20,7 +20,7 @@ module CommandTest
         end
 
         def assert_catches_command(*expected, &block)
-          result = Tests::RunsCommand.new(expected, false, &block)
+          result = Tests::RunsCommand.new(expected, true, &block)
           matches = result.matches?
           assert matches, result.positive_failure_message
         end

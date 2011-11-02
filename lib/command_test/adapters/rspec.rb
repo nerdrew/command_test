@@ -25,7 +25,7 @@ module CommandTest
       end
 
       def matches?(proc)
-        @test = Tests::RunsCommand.new(@expected, true, &proc)
+        @test = Tests::RunsCommand.new(@expected, &proc)
         @test.matches?
       end
 
@@ -40,7 +40,7 @@ module CommandTest
 
     class CatchCommand < RunCommand
       def matches?(proc)
-        @test = Tests::RunsCommand.new(@expected, false, &proc)
+        @test = Tests::RunsCommand.new(@expected, true, &proc)
         @test.matches?
       end
     end
